@@ -1,0 +1,285 @@
+-------------------day4-------------------------------------------
+    
+    --5.5 lag 함수, lead 함수
+    --    ==> 게시판에서 특정글을 조회할 때 많이 사용합니다!!
+    
+    create table tbl_board
+    (boardno       number                -- 글번호 
+    ,subject       varchar2(4000)        -- 글제목   varchar2 의 최대크기는 4000 이다. 4000 보다 크면 오류!!!
+    ,content       Nvarchar2(2000)       -- 글내용   Nvarchar2 의 최대크기는 2000 이다. 2000 보다 크면 오류!!!
+    ,userid        varchar2(40)          -- 글쓴이의 ID
+    ,registerday   date default sysdate  -- 작성일자   default sysdate 은 데이터 입력시 registerday 컬럼의 값을 생략하면 기본적으로 sysdate 가 입력된다는 말이다. 
+    ,readcount     number(10)            -- 조회수
+    );
+    
+    insert into tbl_board(boardno, subject, content, userid, registerday, readcount)
+    values(1, '안녕하세요', '글쓰기 연습입니다', 'leess',  sysdate, 0);  
+    -- 1 행 이(가) 삽입되었습니다.
+    
+    insert into tbl_board
+    values(2, '반갑습니다', '모두 취업대박 나십시오', 'eomjh',  sysdate, 0);  
+    -- 1 행 이(가) 삽입되었습니다.
+    
+    insert into tbl_board(subject, boardno, content, userid, registerday, readcount)
+    values('건강하세요', 3, '로또 1등을 기원합니다', 'youks',  sysdate, 0); 
+    -- 1 행 이(가) 삽입되었습니다.
+    
+    insert into tbl_board(boardno, subject, content, userid, registerday, readcount)
+    values(4, '기쁘고 감사함이 넘치는 좋은 하루되세요', '늘 행복하세요', 'leess',  default, 0);
+    -- 1 행 이(가) 삽입되었습니다.
+    
+    insert into tbl_board(boardno, subject, content, userid, readcount)
+    values(5, '오늘도 좋은 하루되세요', '늘 감사합니다', 'hongkd', 0);
+    -- 1 행 이(가) 삽입되었습니다.
+    
+    commit;
+    -- 커밋 완료.
+
+    select *
+    from tbl_board;
+    
+    select boardno
+         , case when length(subject) > 7 then substr(subject, 1, 5) || '..' else subject end AS subject
+         , to_char(registerday, 'yyyy-dd-mm hh24:mi:ss')
+    from tbl_board
+    order by boardno desc;
+    
+    
+    /*
+    -------------------------------------------------------------------------------------------------------------------------------------------
+    이전글번호   이전글제목   이전글작성일자             글번호  글제목     글작성일자                 다음글번호      다음글제목      다음글작성일자
+    -------------------------------------------------------------------------------------------------------------------------------------------
+    4	       기쁘고 감..	2022-07-01 10:24:54     5	오늘도 좋..	2022-07-01 10:26:15      null           null        null  
+    3	       건강하세요     2022-07-01 10:23:59     4	기쁘고 감..	2022-07-01 10:24:54      5	오늘도 좋..	2022-07-01 10:26:15
+    2	       반갑습니다	    2022-07-01 10:23:03     3	건강하세요    2022-07-01 10:23:59      4	 기쁘고 감..	2022-07-01 10:24:54
+    1	       안녕하세요	    2022-07-01 10:20:53     2	반갑습니다	2022-07-01 10:23:03      3	건강하세요    2022-07-01 10:23:59
+    null         null        null                   1	안녕하세요	2022-07-01 10:20:53      2	반갑습니다	2022-07-01 10:23:03
+    */
+         -- lead(대상A, 수) over( order by 대상B 오름/내림차순 )
+         --  대상A을  내린다     대상B의 오름/내림차순에 있는 것을
+    select lead(boardno, 1) over(order by boardno desc) AS 이전글번호
+         -- boardno(글번호) 컬럼의 값을 내림차순으로 정렬했을때 아래쪽으로 1칸 내려간 행의 boardno 값을 가져오는 것이다.
+         , lead(subject, 1) over(order by boardno desc) AS 이전글제목
+         -- boardno(글번호) 컬럼의 값을 내림차순으로 정렬했을때 아래쪽으로 1칸 내려간 행의 subject 값을 가져오는 것이다.
+         , lead(registerday, 1) over(order by boardno desc) AS 이전글작성일자
+         -- boardno(글번호) 컬럼의 값을 내림차순으로 정렬했을때 아래쪽으로 1칸 내려간 행의 registerday 값을 가져오는 것이다.
+         
+         , boardno
+         , subject
+         , registerday
+         
+         , lag(boardno, 1) over(order by boardno desc) AS 다음글번호
+         -- boardno(글번호) 컬럼의 값을 내림차순으로 정렬했을때 위쪽으로 1칸 올라간 행의 boardno 값을 가져오는 것이다.
+         , lag(subject, 1) over(order by boardno desc) AS 다음글제목
+         -- boardno(글번호) 컬럼의 값을 내림차순으로 정렬했을때 위쪽으로 1칸 올라간 행의 subject 값을 가져오는 것이다.
+         , lag(registerday, 1) over(order by boardno desc) AS 다음글작성일자
+         -- boardno(글번호) 컬럼의 값을 내림차순으로 정렬했을때 위쪽으로 1칸 올라간 행의 registerday 값을 가져오는 것이다.
+    from
+    (
+    select boardno
+         , case when length(subject) > 7 then substr(subject, 1, 5) || '..' else subject end AS SUBJECT
+         , to_char(registerday, 'yyyy-dd-mm hh24:mi:ss') AS REGISTERDAY
+    from tbl_board
+    ) V;
+    
+    
+    
+    
+    
+    
+    
+        select lead(boardno, 1) over(order by boardno desc) AS 이전글번호
+             , lead(subject, 1) over(order by boardno desc) AS 이전글제목
+             , lead(registerday, 1) over(order by boardno desc) AS 이전글작성일자
+            
+             , boardno
+             , subject
+             , registerday
+             
+             , lag(boardno, 1) over(order by boardno desc) AS 다음글번호
+             , lag(subject, 1) over(order by boardno desc) AS 다음글제목
+             , lag(registerday, 1) over(order by boardno desc) AS 다음글작성일자
+    from
+    (
+    select boardno
+         , case when length(subject) > 7 then substr(subject, 1, 5) || '..' else subject end AS SUBJECT
+         , to_char(registerday, 'yyyy-dd-mm hh24:mi:ss') AS REGISTERDAY
+    from tbl_board
+    ) V
+    where V.boardno = 3;
+    -- 이렇게 하면 현재글(3번) 만 나옴
+    -- 전체출력을 하기 위해 inline view 를 하나 더 사용
+    
+    
+    select T.*
+    from 
+    (
+          select lead(boardno) over(order by boardno desc) AS 이전글번호
+                -- 숫자가 없으면 1이 생략된 것이다.
+                 , lead(subject) over(order by boardno desc) AS 이전글제목
+                 , lead(registerday) over(order by boardno desc) AS 이전글작성일자
+                
+                 , boardno  AS 글번호
+                 , subject  AS 글제목
+                 , registerday  AS 글작성일자
+                 
+                 , lag(boardno) over(order by boardno desc) AS 다음글번호
+                 , lag(subject) over(order by boardno desc) AS 다음글제목
+                 , lag(registerday) over(order by boardno desc) AS 다음글작성일자
+        from
+        (
+        select boardno
+             , case when length(subject) > 7 then substr(subject, 1, 5) || '..' else subject end AS SUBJECT
+             , to_char(registerday, 'yyyy-dd-mm hh24:mi:ss') AS REGISTERDAY
+        from tbl_board
+        ) V
+    ) T
+    where T.글번호 = 3;
+    
+    
+    
+            select lead(boardno) over(order by boardno desc) AS 이전글번호
+             , lead(subject) over(order by boardno desc) AS 이전글제목
+             , lead(registerday) over(order by boardno desc) AS 이전글작성일자
+            -- 숫자가 없으면 1이 생략된 것이다.
+             , boardno
+             , subject
+             , registerday
+             
+             , lag(boardno) over(order by boardno desc) AS 다음글번호
+             , lag(subject) over(order by boardno desc) AS 다음글제목
+             , lag(registerday) over(order by boardno desc) AS 다음글작성일자
+    from
+    (
+    select boardno
+         , case when length(subject) > 7 then substr(subject, 1, 5) || '..' else subject end AS SUBJECT
+         , to_char(registerday, 'yyyy-dd-mm hh24:mi:ss') AS REGISTERDAY
+    from tbl_board
+    ) V
+    
+    
+     ---------------------------------------------------------------------
+    -- *** case when then else end 구문을 사용하여 로그인 메시지 보여주기 *** --
+    
+    create table tbl_members
+    (userid    varchar2(20)
+    ,passwd    varchar2(20)
+    ,name      varchar2(20)
+    ,addr      varchar2(100)
+    );
+    
+    insert into tbl_members(userid, passwd, name, addr)
+    values('kimys','abcd','김유신','서울');
+    
+    insert into tbl_members(userid, passwd, name, addr)
+    values('young2','abcd','이영이','서울');
+    
+    insert into tbl_members(userid, passwd, name, addr)
+    values('leesa','abcd','이에리사','서울');
+    
+    insert into tbl_members(userid, passwd, name, addr)
+    values('park','abcd','박이남','서울');
+    
+    insert into tbl_members(userid, passwd, name, addr)
+    values('leebon','abcd','이본','서울');
+    
+    commit;  
+    
+    select *
+    from tbl_members;
+    
+    select count(*) -- select 되어져 나온 결과물의 행의 개수 ==> 5
+    from tbl_members;
+    
+    select *
+    from tbl_members
+    where userid = 'kimys' and passwd = 'abasdsdsdd';
+    
+    select count(*) -- select 되어져 나온 결과물의 행의 개수 ==> 0
+    from tbl_members
+    where userid = 'kimys' and passwd = 'abasdsdsdd';
+    
+    select *
+    from tbl_members
+    where userid = 'wewrere' and passwd = 'abcd';
+    
+    select count(*) -- select 되어져 나온 결과물의 행의 개수 ==> 0
+    from tbl_members
+    where userid = 'wewrww' and passwd = 'abcd';
+    
+    
+    
+    /*
+       -- [퀴즈] --
+       tbl_members 테이블에서    
+       userid 및 passwd 가 모두 올바르면 '로그인성공' 을 보여주고,    
+       userid 는 올바르지만 passwd 가 틀리면 '암호가 틀립니다' 을 보여주고,
+       userid 가 존재하지 않으면 '아이디가 존재하지 않습니다' 을 보여주려고 한다.
+    */
+    
+    select case ( select count(*)
+                  from tbl_members
+                  where userid = 'kimys' and passwd = 'abcd')
+           when 1 then '로그인성공'
+           else (
+                  case ( select count(*)
+                         from tbl_members
+                         where userid = 'kimys' )
+                  when 1 then '암호가 틀립니다'
+                  else '아이디가 존재하지 않습니다' 
+                  end
+                )
+           end AS 로그인결과
+    from dual;
+    
+    
+     -- *** 요약값을 보여주는 rollup, cube, grouping sets, groupin 에 대해서 알아보자. ---
+        ----- >>>>> 요약값(rollup, cube, grouping sets) <<<<< ------
+  /*
+      1. rollup(a,b,c) 은 grouping sets( (a,b,c),(a,b),(a),() ) 와 같다.
+    
+         group by rollup(department_id, gender) 은
+         group by grouping sets( (department_id, gender), (department_id), () ) 와 같다.
+  
+      2. cube(a,b,c) 은 grouping sets( (a,b,c),(a,b),(b,c),(a,c),(a),(b),(c),() ) 와 같다.
+ 
+         group by cube(department_id, gender) 은
+         group by grouping sets( (department_id, gender), (department_id), (gender), () ) 와 같다.
+         
+         => rollup은 모두를 보여준 뒤 가장 마지막 요소부터 빼고 보여줌.
+         => cube는 모든 경우의 수를 다 보여줌.
+         => grouping set 는 내가 보고싶은 것만 볼 수 있음.
+  */
+    -- employees 테이블에서 부서번호별로 인원수를 나타내면서 동시에 전체인원수도 나타내세요. ---
+    
+    select department_id
+         , count(*)
+    from employees
+    group by rollup(department_id);
+    -- rollup(a) => a값이 일치하는 대상들을 묶어준다. 맨 밑의 null은 전체인원수.
+    
+    
+    select department_id
+         , grouping(department_id) 
+         -- grouping(department_id) 은 결과값이 오로지 2개(0, 1)만 나온다. 
+         -- 0은 department_id 컬럼의 값으로 그룹을 지었다는 뜻이고 1이라 함은 그룹을 안지었다는 말이다.
+         , count(*)
+    from employees
+    group by rollup(department_id);
+    
+    
+    
+    select decode( grouping(department_id), '0', nvl( to_char(department_id), '인턴')
+                                               , '전체') AS 부서번호
+         , count(*)
+    from employees
+    group by rollup(department_id);
+    -- 부서번호별로 rollup
+    
+    select decode( grouping(department_id), '0', nvl( to_char(department_id), '인턴')
+                                               , '전체') AS 부서번호
+         , count(*)
+         , round( (count(*) / (select count(*) from employees) * 100), 1) AS 퍼센티지
+    from employees
+    group by rollup(department_id);
+    -- 부서별 인원을 전체인원의 퍼센티지로 나타냄.
