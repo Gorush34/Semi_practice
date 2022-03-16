@@ -1,0 +1,52 @@
+3.16
+
+1. DBCP 세팅 (DB와 연결 목적)
+
+context.xml에 문구 확인
+
+web.xml MYDBCP Setting 시작
+  <!-- ========= MyDBCP Setting Start  ===========  -->
+  <resource-ref>
+ 	<description>Oracle Datasource example</description>
+ 	<res-ref-name>jdbc/mymvc_oracle</res-ref-name>
+ 	<res-type>javax.sql.DataSource</res-type>
+ 	<res-auth>Container</res-auth>
+  </resource-ref>
+  <!-- ========= MyDBCP Setting End  ===========  -->
+
+2. Oracle에서 DB 있는데 웹에 없는경우 commit 해봐라
+-DB에서 테이블 작성(이미지 테이블)
+
+3. 인터페이스 만들고 메소드 생성
+  - 복수개를 담아야 하면 리턴타입은 LIST<DTO(VO)> throws SQLException
+
+4. DAO의 기능을 수행하기 위해 데이터를 전송할 DTO(VO)생성
+  - 변수명은 DB 테이블 요소 
+  - Getter & Setter 생성
+
+5. 인터페이스 구현하는 DAO 생성(implements)
+  - 메소드 재정의
+  	private DataSource ds; // // DataSource ds 는 아파치톰캣이 제공하는 DBCP(DB Connection Pool) 이다.
+	private Connection conn;
+	private PreparedStatement pstmt;
+	private ResultSet rs;
+  - 기본생성자 생성
+  - 자원반납 메소드 생성
+
+
+================================================
+
+
+Model		==> 데이터베이스와 관련된 클래스 DAO, VO, DTO
+View		==> JSP파일 .jsp
+Controller	==> Servlet Java
+
+MVC 패턴
+
+https://www.w3schools.com/howto/howto_css_table_responsive.asp - 반응형 테이블
+
+https://www.w3schools.com/howto/howto_css_pagination.asp - 페이지
+
+https://www.w3schools.com/howto/howto_css_star_rating.asp - 별점 매기기
+
+https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp - 검색
