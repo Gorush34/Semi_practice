@@ -50,3 +50,83 @@ https://www.w3schools.com/howto/howto_css_pagination.asp - 페이지
 https://www.w3schools.com/howto/howto_css_star_rating.asp - 별점 매기기
 
 https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp - 검색
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
+3.17
+
+깃허브 폴더 공유하기 전 src/main/java 폴더에 아무거나 하나 만들고 공유
+
+절대 main 브랜치에서 개발하면 안됨
+
+pull commit push 순서 반드시 지켜라
+
+https://www.toptal.com/developers/gitignore ==> gitignore 환경에 따라 정의해서 출력해주는 유용한 사이트
+
+**** JDBC 순서 ****
+
+Connection conn = null;
+		// Connection conn 은 오라클 데이터베이스 서버와 연결을 맺어주는 객체 
+		
+		PreparedStatement pstmt = null;
+		// PreparedStatement pstmt 은 Connection conn(연결할 오라클 서버)에 전송할 SQL문(편지)을 전달할 객체(우편배달부)이다.
+		
+		Scanner sc = new Scanner(System.in);
+
+        try {
+			// >>> 1. 오라클 드라이버 로딩 <<<  //
+	        /*
+	           === OracleDriver(오라클 드라이버)의 역할 ===
+	           1). OracleDriver 를 메모리에 로딩시켜준다.
+	           2). OracleDriver 객체를 생성해준다.
+	           3). OracleDriver 객체를 DriverManager에 등록시켜준다.
+	               --> DriverManager 는 여러 드라이버들을 Vector 에 저장하여 관리해주는 클래스이다.
+	        */ 
+
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			
+			// >>> 2. 어떤 오라클 서버와 연결을 할래? <<< //
+			System.out.print("▷ 연결할 오라클 서버의 IP 주소 : ");
+			String ip = sc.nextLine();
+			
+			conn = DriverManager.getConnection("jdbc:oracle:thin:@"+ip+":1521:xe", "HR", "cclass");
+			
+			// === Connection conn 기본값은 auto commit 이다. === //
+			// === Connection conn 기본값인 auto commit 을 수동 commit 으로 전환해보겠다. === //
+			conn.setAutoCommit(false);
+			// true : auto commit 활성화,  false : auto commit 비활성화 == 수동 commit으로 전환 
+			
+			
+			// >>> 3. SQL문(편지) 을 작성한다. <<< //
+
+			String sql = "insert into jdbc_tbl_memo(no, name, msg )"
+					+ "values(jdbc_seq_memo.nextval, ?, ?)"; // SQL문 맨 뒤에 ; 을 넣으면 오류!!
+			// ? 를 "위치홀더" 라고 부른다. 위치홀더는 ' ' 안쓴다!!!
+		
+			
+			
+			// >>> 4. 연결한 오라클서버(conn)에 SQL문(편지)을 전달할 PreparedStatement 객체(우편배달부) 생성하기 <<< //
+			pstmt = conn.prepareStatement(sql);
+
+			// >>> 5. PreparedStatement pstmt 객체(우편배달부)는 작성된 SQL문(편지)을 오라클 서버에 보내서 실행이 되도록 해야 한다 <<< //
+			int n = pstmt.executeUpdate();
+			/*  .executeUpdate(); 은 SQL문이 DML문(insert, update, delete, merge) 이거나 
+            						 SQL문이 DDL문(create, drop, alter, truncate) 일 경우에 사용된다. 
+
+			SQL문이 DML문이라면 return 되어지는 값은 적용되어진 행의 개수를 리턴시켜준다.
+			예를 들어, insert into ... 하면 1 개행이 입력되므로 리턴값은 1 이 나온다. 
+			 update ... 할 경우에 update 할 대상의 행의 개수가 5 이라면 리턴값은 5 가 나온다. 
+			 delete ... 할 경우에 delete 되어질 대상의 행의 개수가 3 이라면 리턴값은 3 가 나온다.
+			 
+			SQL문이 DDL문이라면 return 되어지는 값은 무조건 0 이 리턴된다.       
+			
+			.executeQuery(); 은 SQL문이 DQL문(select) 일 경우에 사용된다.
+			*/
+			
+			/// >>> 6. 사용하였던 자원을 반납하기 <<< //
+			// 반납의 순서는 생성순서의 역순으로 한다.
+
+
+
